@@ -139,7 +139,7 @@ class HandTracker():
 
         # finding the best prediction
         probabilities = self._sigm(out_clf)
-        detecion_mask = probabilities > 0.9
+        detecion_mask = probabilities > 0.5
         candidate_detect = out_reg[detecion_mask]
         candidate_anchors = self.anchors[detecion_mask]
         probabilities = probabilities[detecion_mask]
