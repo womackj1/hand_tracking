@@ -19,7 +19,7 @@ pip install opencv-python tensorflow
 ![Result](/res.gif?raw=true "Result: Palm Tracking")
 
 ### 5. Acknowledgements
-- Thanks to @metalwhale for the python implememntation of the mediapipe models.
+- Thanks to @metalwhale for the python implementation of the mediapipe models.
 - Thanks to mediapipe for opensourcing these models.
 
 [*mediapipe-models*]: https://github.com/junhwanjang/mediapipe-models/tree/master/palm_detection/mediapipe_models
