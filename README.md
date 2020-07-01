@@ -1,9 +1,9 @@
 ## Hand tracking
 
 ### 1. File Description
-- `palm_detection_without_custom_op.tflite`(Palm detection) Model file: Downloaded from the [*mediapipe-models*] repository.
-- `hand_landmark.tflite`(Landmark detection) Model file: Downloaded from the[*mediapipe*]repository.    
-- `anchors.csv`,`hand_tracker.py`files：Downloaded from the [*hand_tracking*] repository.
+- `palm_detection_without_custom_op.tflite` (Palm detection) Model file: Downloaded from the [*mediapipe-models*] repository.
+- `hand_landmark.tflite` (Landmark detection) Model file: Downloaded from the [*mediapipe*] repository.    
+- `anchors.csv`,`hand_tracker.py` files：Downloaded from the [*hand_tracking*] repository.
 
 ### 2. Setup
 ```sh
