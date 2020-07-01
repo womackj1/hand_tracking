@@ -15,7 +15,7 @@ pip install opencv-python tensorflow
 - ```python run.py --3d False``` for just Palm Tracking.
 
 ### 4. Results
-- Palm tracking:
+#### Palm tracking: 
 ![Result](/res.gif?raw=true "Result: Palm Tracking")
 
 ### 5. Acknowledgements
