@@ -24,15 +24,15 @@ class HandTracker():
         >>> keypoints, bbox = det(input_img)
     """
 
-    def __init__(self, palm_model, joint_model, anchors_path,
+    def __init__(self, hand_3d, palm_model, joint_model, anchors_path,
                 box_enlarge=1.5, box_shift=0.2):
         self.box_shift = box_shift
         self.box_enlarge = box_enlarge
+        self.hand_3d = hand_3d
 
         self.interp_palm = tf.lite.Interpreter(palm_model)
         self.interp_palm.allocate_tensors()
-        self.interp_joint = tf.lite.Interpreter(joint_model)
-        self.interp_joint.allocate_tensors()
+        
 
         # reading the SSD anchors
         with open(anchors_path, "r") as csv_f:
@@ -47,8 +47,13 @@ class HandTracker():
         self.out_reg_idx = output_details[0]['index']
         self.out_clf_idx = output_details[1]['index']
 
-        self.in_idx_joint = self.interp_joint.get_input_details()[0]['index']
-        self.out_idx_joint = self.interp_joint.get_output_details()[0]['index']
+        # in case of 3d hand tracking, run hand_landmark model
+        if(self.hand_3d == "True"):
+            self.interp_joint = tf.lite.Interpreter(joint_model)
+            self.interp_joint.allocate_tensors()
+
+            self.in_idx_joint = self.interp_joint.get_input_details()[0]['index']
+            self.out_idx_joint = self.interp_joint.get_output_details()[0]['index']
 
         # 90° rotation matrix used to create the alignment trianlge
         self.R90 = np.r_[[[0,1],[-1,0]]]
@@ -134,7 +139,7 @@ class HandTracker():
 
         # finding the best prediction
         probabilities = self._sigm(out_clf)
-        detecion_mask = probabilities > 0.5
+        detecion_mask = probabilities > 0.9
         candidate_detect = out_reg[detecion_mask]
         candidate_anchors = self.anchors[detecion_mask]
         probabilities = probabilities[detecion_mask]
@@ -205,12 +210,10 @@ class HandTracker():
             source * scale,
             self._target_triangle
         )
-
-        img_landmark = cv2.warpAffine(
-            self._im_normalize(img_pad), Mtr, (256,256)
-        )
-
-        joints = self.predict_joints(img_landmark)
+        if(self.hand_3d=="True"):
+            img_landmark = cv2.warpAffine(
+                self._im_normalize(img_pad), Mtr, (256,256)
+            )
 
         # adding the [0,0,1] row to make the matrix square
         Mtr = self._pad1(Mtr.T).T
@@ -218,10 +221,16 @@ class HandTracker():
 
         Minv = np.linalg.inv(Mtr)
 
+        kp_orig = []
+        if(self.hand_3d=="True"):
+            joints = self.predict_joints(img_landmark)
+            kp_orig = (self._pad1(joints) @ Minv.T)[:,:2]
+            kp_orig -= pad[::-1]
+
+
         # projecting keypoints back into original image coordinate space
-        kp_orig = (self._pad1(joints) @ Minv.T)[:,:2]
+        
         box_orig = (self._target_box @ Minv.T)[:,:2]
-        kp_orig -= pad[::-1]
         box_orig -= pad[::-1]
 
         return kp_orig, box_orig

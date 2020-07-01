@@ -1,5 +1,12 @@
 import cv2
+import argparse
 from src.hand_tracker import HandTracker
+
+# USAGE: python run.py --3d [true/false]
+ap = argparse.ArgumentParser()
+ap.add_argument("--3d", required=True,
+	help="Check for type of detection")
+args = vars(ap.parse_args())
 
 WINDOW = "Hand Tracking"
 PALM_MODEL_PATH = "models/palm_detection_without_custom_op.tflite"
@@ -39,25 +46,35 @@ connections = [
     (0, 5), (5, 9), (9, 13), (13, 17), (0, 17)
 ]
 
+hand_3d = args["3d"]
+
 detector = HandTracker(
+    hand_3d,
     PALM_MODEL_PATH,
     LANDMARK_MODEL_PATH,
     ANCHORS_PATH,
     box_shift=0.2,
-    box_enlarge=1.3
+    box_enlarge=1
 )
 
 while hasFrame:
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    points, _ = detector(image)
+    points, bbox = detector(image)
     if points is not None:
-        for point in points:
-            x, y = point
-            cv2.circle(frame, (int(x), int(y)), THICKNESS * 2, POINT_COLOR, THICKNESS)
-        for connection in connections:
-            x0, y0 = points[connection[0]]
-            x1, y1 = points[connection[1]]
-            cv2.line(frame, (int(x0), int(y0)), (int(x1), int(y1)), CONNECTION_COLOR, THICKNESS)
+        if hand_3d == "True":
+            for point in points:
+                x, y = point
+                cv2.circle(frame, (int(x), int(y)), THICKNESS * 2, POINT_COLOR, THICKNESS)
+            for connection in connections:
+                x0, y0 = points[connection[0]]
+                x1, y1 = points[connection[1]]
+                cv2.line(frame, (int(x0), int(y0)), (int(x1), int(y1)), CONNECTION_COLOR, THICKNESS)
+        else:
+            cv2.line(frame, (int(bbox[0][0]), int(bbox[0][1])), (int(bbox[1][0]), int(bbox[1][1])), CONNECTION_COLOR, THICKNESS)
+            cv2.line(frame, (int(bbox[1][0]), int(bbox[1][1])), (int(bbox[2][0]), int(bbox[2][1])), CONNECTION_COLOR, THICKNESS)
+            cv2.line(frame, (int(bbox[2][0]), int(bbox[2][1])), (int(bbox[3][0]), int(bbox[3][1])), CONNECTION_COLOR, THICKNESS)
+            cv2.line(frame, (int(bbox[3][0]), int(bbox[3][1])), (int(bbox[0][0]), int(bbox[0][1])), CONNECTION_COLOR, THICKNESS)
+
     cv2.imshow(WINDOW, frame)
     hasFrame, frame = capture.read()
     key = cv2.waitKey(1)
