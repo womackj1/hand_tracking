@@ -224,6 +224,7 @@ class HandTracker():
         kp_orig = []
         if(self.hand_3d=="True"):
             joints = self.predict_joints(img_landmark)
+            output_details = self.interp_joint.get_output_details()
             kp_orig = (self._pad1(joints) @ Minv.T)[:,:2]
             kp_orig -= pad[::-1]
 
