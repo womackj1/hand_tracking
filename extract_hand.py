@@ -1,3 +1,4 @@
+import os
 import cv2
 import argparse
 from src.hand_tracker import HandTracker
@@ -21,9 +22,10 @@ cv2.namedWindow(WINDOW)
 #Use Camera
 #capture = cv2.VideoCapture(0)
 
-video_name = "blue1"
+video_name = "picklist_17"
+dataset_path = '../2022Spring/dataset/'
 
-capture = cv2.VideoCapture('./videos/'+ video_name + '.mp4')
+capture = cv2.VideoCapture(dataset_path + video_name + '.MP4')
 #green2
 #Use Video
 fps = capture.get(cv2.CAP_PROP_FPS)      # OpenCV2 version 2 used "CV_CAP_PROP_FPS"
@@ -71,16 +73,20 @@ detector = HandTracker(
     box_enlarge=1
 )
 count = 0
+path = os.path.join(dataset_path, video_name)
+if not os.path.exists(path):
+    os.mkdir(path)
 while hasFrame:
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     points, bbox = detector(image)
+    print(count)
     if points is not None:
         if hand_3d == "True":
             min_x = 100000
             min_y = 100000
             max_x = 0
             max_y = 0
-            for point in [points[i] for i in [0,1,5,9,13,17]]:
+            for point in [points[i] for i in [0,1,4,8,20,17]]:
                 x, y = point
                 if x < min_x:
                     min_x = x
@@ -94,14 +100,13 @@ while hasFrame:
             # cv2.rectangle(frame, (int(min_x), int(min_y)), (int(max_x),int(max_y)), POINT_COLOR, THICKNESS)
             frame = frame[int(min_y): int(max_y), int(min_x): int(max_x)]
 
-            if len(frame) < 1000 and len(frame) > 70:
-                cv2.imshow(WINDOW, frame)
-                print(count)
-                print(count/fps*1000)
-                # cv2.imwrite("frames/" + video_name + "_" + str(count) + ".jpg", frame)
-                key = cv2.waitKey(1)
-                if key == 27:
-                    break
+            # if len(frame) < 1000 and len(frame) > 70:
+            cv2.imshow(WINDOW, frame)
+
+            cv2.imwrite(path + "/" + str(count) + ".jpg", frame)
+            key = cv2.waitKey(1)
+            if key == 27:
+                break
             for connection in connections:
                 x0, y0 = points[connection[0]]
                 x1, y1 = points[connection[1]]
@@ -111,8 +116,7 @@ while hasFrame:
             cv2.line(frame, (int(bbox[1][0]), int(bbox[1][1])), (int(bbox[2][0]), int(bbox[2][1])), CONNECTION_COLOR, THICKNESS)
             cv2.line(frame, (int(bbox[2][0]), int(bbox[2][1])), (int(bbox[3][0]), int(bbox[3][1])), CONNECTION_COLOR, THICKNESS)
             cv2.line(frame, (int(bbox[3][0]), int(bbox[3][1])), (int(bbox[0][0]), int(bbox[0][1])), CONNECTION_COLOR, THICKNESS)
-
-    count += 30  # i.e. at 30 fps, this advances one second
+    count += 5  # i.e. at 30 fps, this advances one second
     capture.set(1, count)
     hasFrame, frame = capture.read()
 

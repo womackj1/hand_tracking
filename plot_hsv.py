@@ -42,7 +42,7 @@ l = list(permutations(range(0, 4)))
 label_to_number_array_of_dictionaries = []
 
 label_to_number = {"blue": 0.0, "green": 1.0, "hand": 2.0, "red": 3.0}
-label_to_rgb = {"blue": [0,0,255], "green": [0,255,0], "red": [255,0,0], "hand": [100,100,100]}
+label_to_rgb = {"blue": [0,0,255], "green": [0,255,0], "red": [255,0,0], "hand": [0,0,0]}
 for permutation in l:
     label_to_number_copy = copy.deepcopy(label_to_number)
     label_to_number_copy["blue"] = permutation[0]
@@ -68,8 +68,8 @@ for root, dirs, files in os.walk("./frames"):
         video_name = file[:file.find("_")]
         # print(file[:file.find("_")])
         label = None
-        # if "blue1" in video_name or "red1" in video_name or "green1" in video_name:
-        if "green1" in video_name:
+        if "blue1" in video_name or "red1" in video_name or "green1" in video_name:
+        # if "green1" in video_name:
         #     print(video_name)
             xmlTree = getXMLLabel("./Annotations/" + video_name + "_edited.eaf")
             label = getFrameLabel(xmlTree, frame_to_time(frame_number))
@@ -217,13 +217,14 @@ def image_to_class(predicted_labels, actual_dict):
     :param actual_dict: correct mapping of label name to label number
     :return:
     """
-    print(len(model.labels_.astype(float)))
-    print(len(labels))
+    print(actual_dict)
     for root, dirs, files in os.walk("./frames"):
         print(len(set(file_names)))
         print(len(set(files)))
         for file in files[1000:2000]:
-            if "green1" in file:
+            if "blue1" in video_name: #or "red1" in video_name or "green1" in video_name:
+
+            # if "green1" in file:
 
                 image_path = "./frames/" + file
                 # load image
@@ -239,31 +240,35 @@ def image_to_class(predicted_labels, actual_dict):
                         curr_indices.append(idx)
                 predicted_label_image = np.zeros((height, width, 3))
                 actual_label_image = np.zeros((height, width, 3))
-                print("Curr Indices:" + str(len(curr_indices)))
-                for index in curr_indices:
-                    predicted_label_number = predicted_labels[index]
-                    # label number to label name
-                    predicted_label_name = get_key(predicted_label_number, actual_dict)
-                    # label name to label color (global dict)
-                    predicted_rgb = label_to_rgb[predicted_label_name]
+                if len(curr_indices) != 0:
+                    print("Number of Pixels:" + str(len(curr_indices)))
+                    for index in curr_indices:
+                        predicted_label_number = predicted_labels[index]
+                        # label number to label name
+                        predicted_label_name = get_key(predicted_label_number, actual_dict)
+                        # label name to label color (global dict)
+                        predicted_rgb = label_to_rgb[predicted_label_name]
 
-                    actual_label_name = labels[index]
-                    # label name to label color (global dict)
-                    actual_rgb = label_to_rgb[actual_label_name]
+                        actual_label_name = labels[index]
+                        # label name to label color (global dict)
+                        actual_rgb = label_to_rgb[actual_label_name]
 
-                    x = indices[index][0]
-                    y = indices[index][1]
-                    predicted_label_image[x,y] = predicted_rgb
-                    actual_label_image[x,y] = actual_rgb
-                f, axarr = plt.subplots(1, 3)
-                axarr[0].imshow(color_image)
-                axarr[0].set_title("Image")
-                axarr[1].imshow(predicted_label_image)
-                axarr[1].set_title("Predicted")
-                axarr[2].imshow(actual_label_image)
-                axarr[2].set_title("Ground Truth")
-                plt.show()
-                cv2.waitKey(1)
+                        x = indices[index][0]
+                        y = indices[index][1]
+                        predicted_label_image[x,y] = predicted_rgb
+                        actual_label_image[x,y] = actual_rgb
+                    f, axarr = plt.subplots(1, 3)
+                    axarr[0].imshow(color_image)
+                    axarr[0].set_title("Image")
+                    axarr[1].imshow(predicted_label_image)
+                    axarr[1].set_title("Predicted")
+                    axarr[2].imshow(actual_label_image)
+                    axarr[2].set_title("Ground Truth")
+                    print(actual_label_name)
+                    print(actual_rgb)
+                    print(predicted_label_name)
+                    plt.show()
+                    cv2.waitKey(1)
 
 
 image_to_class(model.labels_.astype(float), actual_dict)
